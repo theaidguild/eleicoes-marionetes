@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEBATE PRESIDENCIAL — uma farsa em marionetes</title>
+<style>
+  /* 1 ciclo = 1 compasso da música (4 tempos a 117,97 BPM); o JS ajusta o valor exato */
+  :root{ --cycle:2.0344s; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{ background:#000; overflow:hidden; font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif; }
+
+  body:not(.playing) #scene *,
+  body:not(.playing) #scene *::before,
+  body:not(.playing) #scene *::after{ animation-play-state:paused !important; }
+
+  #scene{
+    position:absolute; left:0; top:0; width:1600px; height:900px;
+    transform-origin:0 0; overflow:hidden; background:#0a1128;
+  }
+
+  /* ================= CENÁRIO ================= */
+  .ceiling{
+    position:absolute; left:0; top:0; width:1600px; height:20px; z-index:20;
+    background:#030306; box-shadow:0 6px 16px rgba(0,0,0,.9);
+  }
+  .wall{
+    position:absolute; left:0; top:0; width:1600px; height:545px;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 2px, transparent 2px 80px),
+      radial-gradient(ellipse at 50% 30%, #1d3478 0%, #0c1638 55%, #070c22 100%);
+  }
+  .wall-stripe{
+    position:absolute; left:0; top:505px; width:1600px; height:40px;
+    background:linear-gradient(90deg, #009c3b 0 35%, #ffdf00 35% 65%, #009c3b 65%);
+    border-top:3px solid #111; opacity:.8;
+  }
+
+  .led{
+    position:absolute; left:430px; top:46px; width:740px; height:140px;
+    border:4px solid #111; border-radius:10px;
+    background:linear-gradient(135deg, #00602a, #003d7a);
+    box-shadow:0 0 40px rgba(0,156,59,.45), inset 0 0 30px rgba(0,0,0,.5);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .led::before{
+    content:""; position:absolute; inset:0; border-radius:6px;
+    background-image:radial-gradient(rgba(0,0,0,.35) 1px, transparent 1.6px);
+    background-size:5px 5px;
+  }
+  .led h1{
+    position:relative; font-size:54px; font-weight:900; letter-spacing:6px; color:#ffdf00;
+    text-shadow:0 0 18px rgba(255,223,0,.6), 3px 3px 0 #111;
+  }
+  .led .sub{ position:relative; color:#fff; font-size:18px; letter-spacing:4px; margin-top:4px; }
+  .rec{
+    display:inline-block; width:12px; height:12px; border-radius:50%;
+    background:#ff2b2b; margin-right:8px; animation:blink 1s infinite;
+  }
+  @keyframes blink{ 50%{ opacity:.15; } }
+
+  .screen{
+    position:absolute; top:70px; width:240px; height:150px; padding-top:16px;
+    border:4px solid #111; border-radius:8px; background:#05081a;
+    box-shadow:0 0 24px rgba(60,120,255,.35);
+    color:#9fc4ff; text-align:center; font-size:14px; font-weight:bold; letter-spacing:2px;
+  }
+  .screen .num{ font-size:64px; font-weight:900; color:#ffdf00; line-height:1.15; }
+
+  .spot{
+    position:absolute; top:0; width:520px; height:600px; margin-left:-260px; z-index:2;
+    background:linear-gradient(rgba(255,240,200,.30), rgba(255,240,200,.04));
+    clip-path:polygon(45% 0, 55% 0, 100% 100%, 0 100%);
+    animation:spot var(--cycle) infinite; pointer-events:none;
+  }
+  .spot.dim{ opacity:.5; animation:none; }
+  @keyframes spot{
+    0%,25%,50%,87.5%{ opacity:1; }
+    8%,33%,58%,95%,100%{ opacity:.5; }
+  }
+
+  .floor{
+    position:absolute; left:0; top:545px; width:1600px; height:90px;
+    background:linear-gradient(#4a3423, #2a1c12); border-top:3px solid #111;
+  }
+  .lip{
+    position:absolute; left:0; top:635px; width:1600px; height:16px;
+    background:#6b4a30; border-top:3px solid #111; border-bottom:3px solid #111;
+  }
+  .pit{
+    position:absolute; left:0; top:651px; width:1600px; height:249px;
+    background:linear-gradient(#0e0e18, #040407);
+  }
+
+  .podium{
+    position:absolute; top:410px; width:190px; height:150px; margin-left:-95px; z-index:4;
+    background:linear-gradient(#22356e, #121d42); border:3px solid #111; border-radius:4px;
+    text-align:center;
+  }
+  .podium::before{
+    content:""; position:absolute; left:-14px; right:-14px; top:-18px; height:18px;
+    background:#2f4a94; border:3px solid #111; border-radius:4px;
+  }
+  .badge{
+    margin:20px auto 8px; width:62px; height:62px; border-radius:50%;
+    background:#009c3b; border:3px solid #111;
+    color:#ffdf00; font-size:34px; font-weight:900; line-height:56px;
+  }
+  .podium .name{ color:#fff; font-size:13px; font-weight:bold; letter-spacing:2px; }
+  .podium .note{ color:#9fb3e6; font-size:10px; letter-spacing:1px; margin-top:3px; }
+
+  .desk{
+    position:absolute; left:800px; top:452px; width:280px; height:108px; margin-left:-140px; z-index:4;
+    background:linear-gradient(#3b3b48, #1e1e28); border:3px solid #111; border-radius:4px;
+    color:#ffdf00; text-align:center; font-weight:bold; letter-spacing:4px; font-size:15px; padding-top:40px;
+  }
+  .desk::before{
+    content:""; position:absolute; left:-12px; right:-12px; top:-16px; height:16px;
+    background:#55556a; border:3px solid #111; border-radius:4px;
+  }
+
+  .bubble{
+    position:absolute; left:800px; top:222px; transform:translateX(-50%); z-index:6;
+    background:#fff; color:#111; border:3px solid #111; border-radius:18px;
+    padding:10px 20px; font-size:19px; font-weight:bold; white-space:nowrap;
+    transition:opacity .3s;
+  }
+  .bubble::after{
+    content:""; position:absolute; left:50%; bottom:-16px; margin-left:-10px;
+    border:10px solid transparent; border-top:14px solid #111;
+  }
+  .bubble.fade{ opacity:0; }
+
+  .chair{
+    position:absolute; width:104px; height:120px; margin-left:-52px;
+    background:linear-gradient(#8a1c1c, #5a0f0f); border:3px solid #111; border-radius:18px 18px 6px 6px;
+  }
+  .rail{
+    position:absolute; left:0; top:838px; width:1600px; height:62px; z-index:9;
+    background:linear-gradient(#1a1a2a, #0c0c14); border-top:4px solid #111;
+  }
+  .lower{
+    position:absolute; left:40px; right:40px; top:7px; height:46px; display:flex;
+    border:3px solid #111; border-radius:6px; overflow:hidden;
+  }
+  .live{
+    background:#d11; color:#fff; font-weight:900; letter-spacing:2px; padding:0 16px;
+    display:flex; align-items:center;
+  }
+  #caption{
+    flex:1; background:#f5f5f5; color:#111; font-size:19px; font-weight:bold;
+    display:flex; align-items:center; padding:0 18px; transition:opacity .4s;
+  }
+  #caption.fade{ opacity:0; }
+
+  /* ================= MARIONETES ESTILO SOUTH PARK ================= */
+  .pup{ position:absolute; top:20px; width:0; height:0; }
+  .sway{
+    position:absolute; left:0; top:0; transform-origin:0 0;
+    animation:sway calc(var(--cycle) * 2) infinite ease-in-out;
+  }
+  @keyframes sway{ 0%,100%{ transform:rotate(1.2deg); } 50%{ transform:rotate(-1.2deg); } }
+
+  .phand{
+    position:absolute; left:-18px; top:-14px; width:36px; height:30px;
+    background:#1b1b26; border:2px solid #000; border-radius:10px 10px 16px 16px;
+  }
+  .ctrl{
+    position:absolute; left:-26px; top:0; width:52px; height:8px;
+    background:#7a5230; border:2px solid #111; border-radius:3px;
+    animation:ctrl var(--cycle) infinite ease-in-out;
+    transition:opacity 1.5s;
+  }
+  .ctrl::after{
+    content:""; position:absolute; left:19px; top:-8px; width:10px; height:20px;
+    background:#7a5230; border:2px solid #111; border-radius:3px;
+  }
+  @keyframes ctrl{
+    0%,12%,37%,62%,100%{ transform:rotate(0); }
+    3%{ transform:rotate(-10deg); }
+    28%{ transform:rotate(10deg); }
+    53%{ transform:rotate(-6deg); }
+  }
+
+  .string{ position:absolute; left:-1px; top:4px; width:2px; background:rgba(220,220,235,.55); transition:opacity 1.5s; }
+  .crowd .string{ width:1px; background:rgba(220,220,235,.3); }
+
+  .doll{ position:absolute; left:0; animation:nod var(--cycle) infinite ease-in-out; }
+  @keyframes nod{
+    0%,10%,25%,35%,50%,60%,87.5%,97%,100%{ transform:translateY(0); }
+    3%,28%,53%{ transform:translateY(6px); }
+    90%{ transform:translateY(4px); }
+  }
+
+  .fig{
+    position:absolute; left:-60px; top:0; width:120px; height:150px;
+    transform:scale(var(--s,1)); transform-origin:60px 0;
+  }
+  .head{
+    position:absolute; left:28px; top:0; width:64px; height:56px; z-index:2;
+    background:var(--skin); border:3px solid #111; border-radius:8px;
+  }
+  .hair{
+    position:absolute; left:-3px; top:-10px; width:64px; height:20px;
+    background:var(--hair); border:3px solid #111; border-radius:14px 14px 4px 4px;
+  }
+  .hat{
+    position:absolute; left:-6px; top:-22px; width:70px; height:28px; z-index:3;
+    background:var(--hat); border:3px solid #111; border-radius:30px 30px 4px 4px;
+  }
+  .hat::after{
+    content:""; position:absolute; left:-4px; right:-4px; bottom:-10px; height:12px;
+    background:var(--brim); border:3px solid #111; border-radius:4px;
+  }
+  .hat.pom::before{
+    content:""; position:absolute; left:50%; top:-14px; margin-left:-9px; width:18px; height:18px;
+    background:var(--brim); border:3px solid #111; border-radius:50%;
+  }
+  .eye{
+    position:absolute; top:9px; width:20px; height:20px; z-index:1;
+    background:#fff; border:2px solid #111; border-radius:50%;
+  }
+  .eye.l{ left:9px; } .eye.r{ left:29px; }
+  .eye::after{
+    content:""; position:absolute; top:6px; left:var(--px,5px);
+    width:6px; height:6px; border-radius:50%; background:#111;
+  }
+  .brow{ position:absolute; top:5px; width:22px; height:5px; background:#111; border-radius:2px; z-index:2; }
+  .brow.l{ left:7px; transform:rotate(20deg); }
+  .brow.r{ left:29px; transform:rotate(-20deg); }
+  .mouth{
+    position:absolute; left:50%; bottom:4px; width:22px; height:5px; margin-left:-11px;
+    background:#4a0f0f; border:2px solid #111; border-radius:3px 3px 10px 10px;
+  }
+
+  .torso{
+    position:absolute; left:22px; top:54px; width:76px; height:88px; z-index:1;
+    background:var(--shirt); border:3px solid #111; border-radius:12px 12px 4px 4px;
+  }
+  .torso.suit::before{
+    content:""; position:absolute; left:50%; top:0; width:30px; height:36px; margin-left:-15px;
+    background:#fff; clip-path:polygon(0 0, 100% 0, 50% 100%);
+  }
+  .tie{
+    position:absolute; left:50%; top:2px; width:11px; height:42px; margin-left:-5.5px;
+    background:var(--tie); clip-path:polygon(20% 0, 80% 0, 100% 78%, 50% 100%, 0 78%);
+  }
+
+  .arm{
+    position:absolute; top:58px; width:20px; height:60px; z-index:0;
+    background:var(--shirt); border:3px solid #111; border-radius:8px;
+    transform-origin:10px 8px; transform:rotate(var(--rest));
+  }
+  .arm.l{ left:12px; --rest:10deg;  --jab:84deg;  --up:165deg; }
+  .arm.r{ left:88px; --rest:-10deg; --jab:-84deg; --up:-165deg; }
+  .mitt{
+    position:absolute; left:-2px; bottom:-16px; width:19px; height:19px;
+    background:var(--skin); border:3px solid #111; border-radius:50%;
+  }
+  .fing{
+    position:absolute; left:3px; bottom:-34px; width:10px; height:22px;
+    background:var(--skin); border:3px solid #111; border-radius:5px;
+  }
+
+  /* ---- coreografia por compasso: tempo 1 = 0%, tempo 2 = 25%, tempo 3 = 50%, "e" do 4 = 87,5% ---- */
+  /* candidato A acusa no tempo 1, candidato B devolve no tempo 2 */
+  .arm.pt.p1{ animation:jab1 var(--cycle) infinite ease-out; }
+  .arm.pt.p2{ animation:jab2 var(--cycle) infinite ease-out; }
+  @keyframes jab1{
+    0%{ transform:rotate(var(--rest)); }
+    4%,16%{ transform:rotate(var(--jab)); }
+    22%,100%{ transform:rotate(var(--rest)); }
+  }
+  @keyframes jab2{
+    0%,25%{ transform:rotate(var(--rest)); }
+    29%,41%{ transform:rotate(var(--jab)); }
+    47%,100%{ transform:rotate(var(--rest)); }
+  }
+  /* plateia: copia o candidato, levanta os braços no tempo 3 e aponta de novo no "e" do 4 */
+  .arm.cpt.p1{ animation:cjab1 var(--cycle) infinite ease-out; }
+  .arm.cpt.p2{ animation:cjab2 var(--cycle) infinite ease-out; }
+  .arm.up{ animation:raise var(--cycle) infinite ease-out; }
+  @keyframes cjab1{
+    0%{ transform:rotate(var(--rest)); }
+    4%,16%{ transform:rotate(var(--jab)); }
+    22%,48%{ transform:rotate(var(--rest)); }
+    53%,80%{ transform:rotate(var(--up)); }
+    88%,93%{ transform:rotate(var(--jab)); }
+    99%,100%{ transform:rotate(var(--rest)); }
+  }
+  @keyframes cjab2{
+    0%,25%{ transform:rotate(var(--rest)); }
+    29%,41%{ transform:rotate(var(--jab)); }
+    47%,48%{ transform:rotate(var(--rest)); }
+    53%,80%{ transform:rotate(var(--up)); }
+    88%,93%{ transform:rotate(var(--jab)); }
+    99%,100%{ transform:rotate(var(--rest)); }
+  }
+  @keyframes raise{
+    0%,48%{ transform:rotate(var(--rest)); }
+    53%,80%{ transform:rotate(var(--up)); }
+    88%,100%{ transform:rotate(var(--rest)); }
+  }
+
+  .mouth.m1{ animation:mouth1 var(--cycle) infinite; }
+  .mouth.m2{ animation:mouth2 var(--cycle) infinite; }
+  .mouth.mc{ animation:mouthC var(--cycle) infinite; }
+  .mouth.talk{ animation:talk .5s infinite; }
+  @keyframes mouth1{ 0%{ height:5px; } 4%,16%{ height:14px; } 22%,100%{ height:5px; } }
+  @keyframes mouth2{ 0%,25%{ height:5px; } 29%,41%{ height:14px; } 47%,100%{ height:5px; } }
+  @keyframes mouthC{ 0%,48%{ height:5px; } 53%,80%{ height:14px; } 88%,100%{ height:5px; } }
+  @keyframes talk{ 0%,100%{ height:5px; } 25%{ height:11px; } 50%{ height:4px; } 75%{ height:12px; } }
+
+  .mod{ position:absolute; left:800px; top:345px; width:0; z-index:3; }
+  .mod .eye::after{ animation:look calc(var(--cycle) * 2) infinite; }
+  @keyframes look{ 0%,45%{ left:1px; } 50%,95%{ left:9px; } 100%{ left:1px; } }
+
+  .fx{
+    position:absolute; z-index:15; font-size:42px; opacity:0; pointer-events:none;
+    transform:translate(-50%,-50%);
+  }
+  .fx.f1{ animation:fx1 var(--cycle) infinite; }
+  .fx.f2{ animation:fx2 var(--cycle) infinite; }
+  .fx.fc{ animation:fxc var(--cycle) infinite; }
+  @keyframes fx1{
+    0%{ opacity:0; transform:translate(-50%,-50%) scale(.3); }
+    4%{ opacity:1; transform:translate(-50%,-50%) scale(1.25); }
+    16%{ opacity:1; transform:translate(-50%,-70%) scale(1); }
+    22%,100%{ opacity:0; transform:translate(-50%,-90%) scale(.8); }
+  }
+  @keyframes fx2{
+    0%,25%{ opacity:0; transform:translate(-50%,-50%) scale(.3); }
+    29%{ opacity:1; transform:translate(-50%,-50%) scale(1.25); }
+    41%{ opacity:1; transform:translate(-50%,-70%) scale(1); }
+    47%,100%{ opacity:0; transform:translate(-50%,-90%) scale(.8); }
+  }
+  @keyframes fxc{
+    0%,48%{ opacity:0; transform:translate(-50%,-50%) scale(.3); }
+    53%{ opacity:1; transform:translate(-50%,-60%) scale(1.2); }
+    75%{ opacity:1; transform:translate(-50%,-130%) scale(1); }
+    84%,100%{ opacity:0; transform:translate(-50%,-160%) scale(.8); }
+  }
+  .flash{
+    position:absolute; inset:0; z-index:14; pointer-events:none; opacity:0;
+    background:radial-gradient(ellipse at 50% 60%, rgba(255,190,80,.16), transparent 60%);
+    animation:flash var(--cycle) infinite;
+  }
+  @keyframes flash{
+    0%,10%,25%,35%,50%,62%,87%,97%,100%{ opacity:0; }
+    2%,27%,52%{ opacity:1; }
+    89%{ opacity:.8; }
+  }
+
+  /* ---- intensidade de acordo com a parte da música ---- */
+  /* intro e pausa: a plateia ainda está "solta" — sem cordas, sem gestos */
+  .ph-intro .crowd .arm.l, .ph-break .arm.l{ --jab:10deg;  --up:10deg; }
+  .ph-intro .crowd .arm.r, .ph-break .arm.r{ --jab:-10deg; --up:-10deg; }
+  .ph-intro .crowd .string, .ph-intro .crowd .ctrl{ opacity:0; }
+  /* verso: a plateia aponta, mas ainda não levanta os braços */
+  .ph-verse .crowd .arm.l{ --up:10deg; }
+  .ph-verse .crowd .arm.r{ --up:-10deg; }
+  /* fogo só no drop; flash a partir da subida */
+  body:not(.ph-drop) .fx.fc{ visibility:hidden; }
+  .ph-intro .flash, .ph-verse .flash, .ph-break .flash{ visibility:hidden; }
+  .ph-break .fx.f1, .ph-break .fx.f2{ visibility:hidden; }
+
+  /* ================= UI ================= */
+  #mute{
+    position:fixed; right:14px; top:14px; z-index:101;
+    background:#1a1a26; color:#ccc; border:1px solid #33334a;
+    border-radius:8px; font-size:16px; padding:6px 10px; cursor:pointer;
+  }
+  #overlay{
+    position:fixed; inset:0; z-index:100; background:rgba(5,5,12,.93);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;
+    text-align:center; padding:20px; transition:opacity .6s;
+  }
+  #overlay .big{
+    font-size:clamp(22px,4vw,40px); font-weight:900; letter-spacing:6px; color:#ffdf00;
+    text-shadow:0 0 30px rgba(255,200,40,.4);
+  }
+  #overlay p{ color:#9a9ab0; font-size:14px; max-width:460px; line-height:1.6; }
+  #startBtn{
+    font-family:inherit; font-size:20px; font-weight:bold; letter-spacing:2px;
+    padding:18px 40px; cursor:pointer; color:#0b0b12; background:#ffdf00;
+    border:3px solid #111; border-radius:12px; box-shadow:0 0 40px rgba(255,200,40,.35);
+    transition:transform .15s;
+  }
+  #startBtn:hover{ transform:scale(1.05); }
+</style>
+</head>
+<body class="ph-intro">
+
+<div id="scene">
+  <div class="wall"></div>
+  <div class="wall-stripe"></div>
+  <div class="led">
+    <h1>DEBATE PRESIDENCIAL</h1>
+    <div class="sub"><span class="rec"></span>AO VIVO · UMA FARSA EM MARIONETES</div>
+  </div>
+  <div class="screen" style="left:110px;">PROPOSTAS<br>APRESENTADAS<div class="num">0</div></div>
+  <div class="screen" style="left:1250px;">DEDOS<br>APONTADOS<div class="num" id="dedos">0</div></div>
+
+  <div class="spot" style="left:400px;"></div>
+  <div class="spot dim" style="left:800px;"></div>
+  <div class="spot" style="left:1200px;"></div>
+
+  <div class="floor"></div>
+  <div class="lip"></div>
+  <div class="pit"></div>
+
+  <div class="podium" style="left:400px;">
+    <div class="badge">A</div>
+    <div class="name">CANDIDATO A</div>
+    <div class="note">especialista em apontar</div>
+  </div>
+  <div class="podium" style="left:1200px;">
+    <div class="badge">B</div>
+    <div class="name">CANDIDATO B</div>
+    <div class="note">também especialista em apontar</div>
+  </div>
+  <div class="desk">MEDIAÇÃO</div>
+  <div class="bubble" id="bubble">Boa noite. Primeira pergunta: saúde.</div>
+
+  <div class="fx f1" style="left:585px; top:330px;">💥</div>
+  <div class="fx f2" style="left:1015px; top:330px;">💥</div>
+  <div class="fx fc" style="left:210px; top:610px;">🔥</div>
+  <div class="fx fc" style="left:600px; top:600px;">🔥</div>
+  <div class="fx fc" style="left:1000px; top:600px;">🔥</div>
+  <div class="fx fc" style="left:1390px; top:610px;">🔥</div>
+
+  <div class="flash"></div>
+
+  <div class="rail">
+    <div class="lower">
+      <div class="live">● AO VIVO</div>
+      <div id="caption">Boa noite. Começa agora o debate presidencial.</div>
+    </div>
+  </div>
+
+  <div class="ceiling"></div>
+</div>
+
+<button id="mute" title="Som ligado/desligado">🔊</button>
+
+<div id="overlay">
+  <div class="big">🎭 DEBATE PRESIDENCIAL</div>
+  <p>
+    Dois candidatos, dois dedos, zero respostas.<br>
+    E uma plateia que vira marionete quando a batida entra.
+  </p>
+  <p>🎵 Trilha: Hardknox — <i>Fire Like This</i>. Use fones. Ou não. Ninguém vai responder mesmo.</p>
+  <button id="startBtn">▶ DÁ O BOOM-BOOM-CLAP</button>
+</div>
+
+<script>
+/* =========================================================
+   MAPA DA MÚSICA (medido no arquivo de áudio)
+   ========================================================= */
+const BPM   = 117.97;           // andamento
+const GRID0 = 0.343;            // segundo em que cai o 1º tempo do 1º compasso
+const BEAT  = 60 / BPM;
+const BAR   = BEAT * 4;         // 1 compasso = 1 ciclo de animação
+document.documentElement.style.setProperty('--cycle', BAR.toFixed(4) + 's');
+
+const SONG_FILES = [
+  "Hardknox - Fire like this (We're gonna rock you).mp3",
+  'fire-like-this.mp3',
+];
+
+/* partes da música -> modo de animação + textos */
+const SECTIONS = [
+  { t:0, mode:'intro', dedos:2,
+    captions:['Boa noite. Começa agora o debate presidencial.',
+              'Candidato A respondeu... apontando para o Candidato B.',
+              'Candidato B, direito de resposta: apontou de volta.',
+              'Na plateia, por enquanto, tudo calmo. Por enquanto.'],
+    questions:['Boa noite. Primeira pergunta: saúde.', 'Candidato A, sua proposta?', 'Candidato B, sua proposta?', 'Alguém?'] },
+  { t:26.79, mode:'verse', dedos:17,
+    captions:['Opa. Apareceram cordas na plateia.',
+              'O povo aprendeu rápido: resposta boa é dedo na cara do vizinho.',
+              'Nenhum plano de governo. Nenhum número. Só dedos.',
+              'Grupo da família no WhatsApp: oficialmente em chamas.',
+              'Primo apontando pro primo. Tia apontando pra todo mundo.',
+              'Debate de ideias: 0. Debate de dedos: 1.000.',
+              'Ninguém ouviu a pergunta. Mas todo mundo tem opinião.'],
+    questions:['E a educação?', 'Segurança pública?', 'Economia?', 'Meio ambiente?', 'Alguém leu o plano de governo?', 'Existe um plano de governo?', 'Próxima pergunta...'] },
+  { t:55.27, mode:'break', dedos:0,
+    captions:['...', 'Silêncio no estúdio. Alguém tem uma proposta?'],
+    questions:['...alguém?', '...alô?'] },
+  { t:59.34, mode:'build', dedos:17,
+    captions:['Nada? Ok. Segundo bloco.',
+              'O marionetista ajusta as cordas.',
+              'A plateia já faz o gesto sozinha. Ninguém precisa mais puxar.',
+              'Lá vem...'],
+    questions:['Segundo bloco: corrupção.', 'Quem começa?', 'Os dois ao mesmo tempo, então.', 'Ok...'] },
+  { t:75.62, mode:'drop', dedos:34,
+    captions:['🔥 O PAÍS INTEIRO APONTANDO 🔥',
+              'Enquanto o dedo apontava, o boleto venceu.',
+              'Checagem de fatos: 0 propostas, milhares de dedos.',
+              'Ninguém respondeu nada. Todo mundo se sentiu representado.',
+              'O debate acabou virando show. O show é a gente.',
+              'Plateia empolgada. País parado.',
+              'Respostas encontradas até agora: nenhuma.',
+              'A culpa é sempre do outro. Inclusive a sua.',
+              'Quanto mais forte o dedo, mais fraca a proposta.',
+              'Quem segura as cordas? Spoiler: não é o povo.',
+              'Aplausos pra ninguém!',
+              'Isso aqui é um país ou um auditório?'],
+    questions:['Candidatos, por favor...', 'Gente?', 'GENTE!', 'Desisto.', 'Intervalo?', 'INTERVALO!'] },
+  { t:124.44, mode:'verse', dedos:17,
+    captions:['Intervalo comercial. A plateia continua brigando.',
+              'As cordas nunca afrouxam.',
+              'Volta do intervalo: mesmos dedos, mesmas perguntas.',
+              'E as propostas? Ficaram pra depois da eleição.'],
+    questions:['Voltamos!', 'Considerações finais?', 'Uma frase, candidato?', 'Uma palavra?'] },
+  { t:140.72, mode:'break', dedos:0,
+    captions:['Considerações finais...'],
+    questions:['...'] },
+  { t:142.75, mode:'drop', dedos:34,
+    captions:['🔥 CONSIDERAÇÕES FINAIS: DEDO 🔥',
+              'Fim do debate. Vencedor: ninguém. Aplausos: obrigatórios.',
+              'Até a próxima eleição. Mesmas cordas.',
+              'Boa noite, e boa sorte.',
+              'Você também apontou. A gente viu.',
+              'Fire like this. Brasil like this.'],
+    questions:['Boa noite!', 'Obrigado pela... participação?', 'Até daqui 4 anos!'] },
+];
+
+const scene = document.getElementById('scene');
+
+function fit(){
+  const s = Math.min(innerWidth / 1600, innerHeight / 900);
+  scene.style.transform = `translate(${(innerWidth - 1600 * s) / 2}px, ${(innerHeight - 900 * s) / 2}px) scale(${s})`;
+}
+addEventListener('resize', fit);
+fit();
+
+/* ============ BONECOS ============ */
+function fig(o){
+  const vars = [
+    `--s:${o.s}`, `--skin:${o.skin}`, `--hair:${o.hair || '#333'}`,
+    `--shirt:${o.shirt}`, `--px:${o.px}px`,
+    o.tie ? `--tie:${o.tie}` : '',
+    o.hat ? `--hat:${o.hat};--brim:${o.brim || o.hat}` : '',
+  ].filter(Boolean).join(';');
+  return `
+    <div class="fig" style="${vars}">
+      <div class="arm l ${o.lc || ''}">${o.point === 'l' ? '<div class="fing"></div>' : ''}<div class="mitt"></div></div>
+      <div class="arm r ${o.rc || ''}">${o.point === 'r' ? '<div class="fing"></div>' : ''}<div class="mitt"></div></div>
+      <div class="torso ${o.suit ? 'suit' : ''}">${o.tie ? '<div class="tie"></div>' : ''}</div>
+      <div class="head">
+        ${o.hat ? `<div class="hat ${o.pom ? 'pom' : ''}"></div>` : '<div class="hair"></div>'}
+        ${o.brows ? '<div class="brow l"></div><div class="brow r"></div>' : ''}
+        <div class="eye l"></div><div class="eye r"></div>
+        <div class="mouth ${o.mouth || ''}"></div>
+      </div>
+    </div>`;
+}
+
+function puppet(x, len, z, cls, opts){
+  const el = document.createElement('div');
+  el.className = 'pup ' + cls;
+  el.style.left = x + 'px';
+  el.style.zIndex = z;
+  el.innerHTML = `
+    <div class="sway" style="animation-delay:-${(Math.random() * BAR * 2).toFixed(2)}s">
+      ${cls === 'cand' ? '<div class="phand"></div>' : ''}
+      <div class="ctrl"></div>
+      <div class="string" style="height:${len - 4}px"></div>
+      <div class="doll" style="top:${len}px">${fig(opts)}</div>
+    </div>`;
+  scene.appendChild(el);
+}
+
+function chair(x, top, z){
+  const c = document.createElement('div');
+  c.className = 'chair';
+  c.style.cssText = `left:${x}px; top:${top}px; z-index:${z}`;
+  scene.appendChild(c);
+}
+
+puppet(400, 240, 3, 'cand', {
+  s:1.25, skin:'#ffd9a0', hair:'#5a3a1a', shirt:'#1f2a4d', suit:true, tie:'#d62828',
+  brows:true, px:9, point:'r', rc:'pt p1', mouth:'m1',
+});
+puppet(1200, 240, 3, 'cand', {
+  s:1.25, skin:'#f1c27d', hair:'#e0b040', shirt:'#4b525e', suit:true, tie:'#1d5fd6',
+  brows:true, px:1, point:'l', lc:'pt p2', mouth:'m2',
+});
+
+const mod = document.createElement('div');
+mod.className = 'mod';
+mod.innerHTML = fig({ s:1, skin:'#ffd9a0', hair:'#9a9a9a', shirt:'#2b2b2b', suit:true, tie:'#ffdf00', px:5, mouth:'talk' });
+scene.appendChild(mod);
+
+const people = [
+  { skin:'#c68642', hair:'#1f1f1f', shirt:'#c8452e' },
+  { skin:'#ffd9a0', shirt:'#2e8b57', hat:'#2e7d32', brim:'#c62828', pom:true },
+  { skin:'#8d5524', hair:'#111',    shirt:'#8e44ad' },
+  { skin:'#e0ac69', hair:'#7a7a7a', shirt:'#e8a020' },
+  { skin:'#f5cba7', shirt:'#3f51b5', hat:'#c62828', brim:'#ffdf00', pom:true },
+  { skin:'#c68642', hair:'#3a2a1a', shirt:'#16a085' },
+  { skin:'#ffd9a0', hair:'#d9a441', shirt:'#d35400' },
+  { skin:'#8d5524', shirt:'#7f8c8d', hat:'#1d5fd6', brim:'#fff', pom:true },
+  { skin:'#f1c27d', hair:'#5a3a1a', shirt:'#27ae60' },
+  { skin:'#e0ac69', hair:'#111',    shirt:'#c0392b' },
+  { skin:'#ffd9a0', shirt:'#8e44ad', hat:'#f39c12', brim:'#2e7d32', pom:true },
+  { skin:'#c68642', hair:'#2a1a0a', shirt:'#2980b9' },
+  { skin:'#f5cba7', hair:'#b03a2e', shirt:'#f1c40f' },
+  { skin:'#8d5524', hair:'#1f1f1f', shirt:'#e74c3c' },
+  { skin:'#ffd9a0', hair:'#7a4a2a', shirt:'#1abc9c' },
+];
+
+function crowdMember(p, x, len, z, phase, pointRight){
+  const opts = { ...p, s:0.8, mouth:'mc', px: pointRight ? 9 : 1 };
+  if (pointRight){ opts.point = 'r'; opts.rc = `cpt ${phase}`; opts.lc = 'up'; }
+  else           { opts.point = 'l'; opts.lc = `cpt ${phase}`; opts.rc = 'up'; }
+  puppet(x, len, z, 'crowd', opts);
+}
+
+for (let i = 0; i < 8; i++){
+  const x = 110 + i * 197;
+  chair(x, 690, 5);
+  crowdMember(people[i], x, 630, 6, 'p1', i % 2 === 0);
+}
+for (let i = 0; i < 7; i++){
+  const x = 208 + i * 197;
+  chair(x, 775, 7);
+  crowdMember(people[8 + i], x, 715, 8, 'p2', i % 2 === 0 && i !== 6);
+}
+
+/* =========================================================
+   ÁUDIO + RELÓGIO
+   Com a música: o relógio é song.currentTime.
+   Sem a música: batida sintetizada no mesmo andamento.
+   ========================================================= */
+const AC = new (window.AudioContext || window.webkitAudioContext)();
+const master = AC.createGain();
+master.gain.value = 0.9;
+master.connect(AC.destination);
+
+function stomp(time){
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(130, time);
+  o.frequency.exponentialRampToValueAtTime(40, time + 0.16);
+  g.gain.setValueAtTime(0.9, time);
+  g.gain.exponentialRampToValueAtTime(0.001, time + 0.22);
+  o.connect(g); g.connect(master);
+  o.start(time); o.stop(time + 0.25);
+}
+function clap(time){
+  const len = Math.floor(AC.sampleRate * 0.18);
+  const buf = AC.createBuffer(1, len, AC.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+  const s = AC.createBufferSource(); s.buffer = buf;
+  const f = AC.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1300; f.Q.value = 0.9;
+  const g = AC.createGain(); g.gain.value = 0.55;
+  s.connect(f); f.connect(g); g.connect(master);
+  s.start(time);
+}
+
+let clock = null;            // função que devolve o tempo atual "da música", em segundos
+const SONG_LENGTH = 168.16;
+
+function startSynth(){
+  const t0 = AC.currentTime + 0.1 - GRID0;
+  clock = () => (AC.currentTime - t0) % SONG_LENGTH;
+  let beat = 0, next = t0 + GRID0;
+  setInterval(() => {
+    while (next < AC.currentTime + 0.2){
+      const b = beat % 4;              // boom (1), boom (2), clapa (3), pausa (4)
+      if (b === 0 || b === 1) stomp(next); else if (b === 2) clap(next);
+      next += BEAT; beat++;
+    }
+  }, 50);
+}
+
+const song = new Audio();
+song.loop = true;
+song.volume = 0.9;
+song.preload = 'auto';
+
+function playSong(i = 0){
+  if (i >= SONG_FILES.length){ startSynth(); return; }
+  song.src = encodeURI(SONG_FILES[i]);
+  song.play()
+    .then(() => { clock = () => song.currentTime; })
+    .catch(() => playSong(i + 1));
+}
+
+/* mantém todas as animações de batida coladas no relógio da música */
+const BEAT_ANIMS = new Set(['spot','ctrl','nod','jab1','jab2','cjab1','cjab2','raise',
+  'mouth1','mouth2','mouthC','fx1','fx2','fxc','flash','sway','look']);
+let beatAnims = [];
+function collectAnims(){
+  beatAnims = scene.getAnimations({ subtree:true }).filter(a => BEAT_ANIMS.has(a.animationName));
+}
+function syncAnims(force){
+  const ms = Math.max(0, clock() - GRID0) * 1000;
+  if (!beatAnims.length) collectAnims();
+  const ref = beatAnims[0];
+  if (!force && ref && Math.abs(ref.currentTime - ms) < 40) return;
+  for (const a of beatAnims) a.currentTime = ms;
+}
+
+/* parte da música -> classe no body + textos */
+let curSection = -1, lastCap = -1, lastQ = -1, lastBar = -1, dedos = 0;
+const capEl = document.getElementById('caption');
+const bubbleEl = document.getElementById('bubble');
+const dedosEl = document.getElementById('dedos');
+
+function swapText(el, text){
+  if (el.textContent === text) return;
+  el.classList.add('fade');
+  setTimeout(() => { el.textContent = text; el.classList.remove('fade'); }, 300);
+}
+
+function update(){
+  const t = clock();
+  let si = 0;
+  for (let i = 0; i < SECTIONS.length; i++) if (t >= SECTIONS[i].t) si = i;
+  const sec = SECTIONS[si];
+
+  if (si !== curSection){
+    if (si < curSection) dedos = 0;           // música recomeçou
+    curSection = si;
+    document.body.className = 'playing ph-' + sec.mode;
+    lastCap = lastQ = -1;
+  }
+
+  const barsIn = Math.floor(Math.max(0, t - Math.max(sec.t, GRID0)) / BAR);
+  const ci = Math.floor(barsIn / 2) % sec.captions.length;   // legenda nova a cada 2 compassos
+  const qi = barsIn % sec.questions.length;                   // pergunta nova a cada compasso
+  if (ci !== lastCap){ lastCap = ci; swapText(capEl, sec.captions[ci]); }
+  if (qi !== lastQ){ lastQ = qi; swapText(bubbleEl, sec.questions[qi]); }
+
+  const bar = Math.floor((t - GRID0) / BAR);
+  if (bar !== lastBar && t >= GRID0){
+    lastBar = bar;
+    dedos += sec.dedos;
+    dedosEl.textContent = dedos.toLocaleString('pt-BR');
+  }
+
+  syncAnims(false);
+  requestAnimationFrame(update);
+}
+
+document.getElementById('startBtn').addEventListener('click', () => {
+  AC.resume().then(() => {
+    playSong();
+    const wait = () => {
+      if (!clock) return requestAnimationFrame(wait);
+      document.body.classList.add('playing');
+      collectAnims();
+      syncAnims(true);
+      requestAnimationFrame(update);
+    };
+    wait();
+    const ov = document.getElementById('overlay');
+    ov.style.opacity = '0';
+    setTimeout(() => ov.remove(), 650);
+  });
+});
+
+song.addEventListener('seeked', () => clock && syncAnims(true));
+
+let muted = false;
+document.getElementById('mute').addEventListener('click', function(){
+  muted = !muted;
+  this.textContent = muted ? '🔇' : '🔊';
+  song.muted = muted;                       // só silencia: a música continua sendo o relógio
+  master.gain.value = muted ? 0 : 0.9;
+});
+</script>
+</body>
+</html>
