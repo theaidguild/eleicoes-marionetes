@@ -234,6 +234,27 @@
     background:#4a0f0f; border:2px solid #111; border-radius:3px 3px 10px 10px;
   }
 
+  .crowd .head{ transform:rotate(-7deg); }
+  .crowd:nth-child(even) .head{ transform:rotate(7deg); }
+  .crowd .eye.l{ top:5px; left:5px; width:26px; height:27px; }
+  .crowd .eye.r{ top:12px; left:31px; width:19px; height:19px; }
+  .crowd .eye.l::after{ top:3px; left:12px; width:7px; height:7px; }
+  .crowd .eye.r::after{ top:8px; left:1px; }
+  .crowd:nth-child(even) .eye.l::after{ top:12px; left:4px; }
+  .crowd:nth-child(even) .eye.r::after{ top:2px; left:8px; }
+  .crowd .mouth{
+    bottom:3px; width:28px; margin-left:-14px; min-height:10px;
+    border-radius:4px 4px 14px 10px; transform:rotate(-8deg);
+  }
+  .crowd .mouth::after{
+    content:""; position:absolute; right:2px; top:3px; width:11px; height:13px;
+    background:linear-gradient(90deg, #f0879c 45%, #c55270 48% 55%, #f0879c 58%);
+    border:1px solid #7a3047; border-radius:3px 3px 8px 8px;
+    transform:rotate(-12deg);
+  }
+  .crowd:nth-child(even) .mouth{ transform:rotate(8deg); }
+  .crowd:nth-child(even) .mouth::after{ right:auto; left:2px; transform:rotate(12deg); }
+
   .torso{
     position:absolute; left:22px; top:54px; width:76px; height:88px; z-index:1;
     background:var(--shirt); border:3px solid #111; border-radius:12px 12px 4px 4px;
@@ -262,6 +283,40 @@
     position:absolute; left:3px; bottom:-34px; width:10px; height:22px;
     background:var(--skin); border:3px solid #111; border-radius:5px;
   }
+
+  .candidate .head{
+    left:0; top:-45px; width:120px; height:132px;
+    background:none; border:0; border-radius:0;
+  }
+  .candidate .head svg{ display:block; width:100%; height:100%; overflow:visible; }
+  .candidate .mouth{
+    bottom:35px; width:20px; margin-left:-10px; height:5px;
+    background:#44332e; border:1px solid #44332e; border-radius:50%;
+  }
+  .candidate.younger .mouth{
+    bottom:33px; width:18px; margin-left:-9px;
+    background:transparent; border:0; border-top:2px solid #44332e;
+    border-radius:50% 50% 0 0;
+  }
+  .candidate .torso{
+    left:12px; top:77px; width:96px; height:102px;
+    background:var(--shirt); overflow:hidden;
+    border:0; border-radius:25px 25px 16px 16px;
+  }
+  .candidate .torso svg{ display:block; width:100%; height:100%; }
+  .candidate .arm{
+    top:82px; width:25px; height:65px; z-index:1;
+    border:2px solid #202535; border-radius:13px 13px 7px 7px;
+    transform-origin:12px 8px;
+  }
+  .candidate .arm.l{ left:0; }
+  .candidate .arm.r{ left:95px; }
+  .candidate .mitt{
+    left:0; bottom:-17px; width:22px; height:24px;
+    border:1px solid #9c805d; border-radius:45%;
+    box-shadow:0 -6px 0 #f3f1e9;
+  }
+  .candidate .fing{ left:5px; border:1px solid #9c805d; }
 
   /* ---- coreografia por compasso: tempo 1 = 0%, tempo 2 = 25%, tempo 3 = 50%, "e" do 4 = 87,5% ---- */
   /* candidato A acusa no tempo 1, candidato B devolve no tempo 2 */
@@ -538,6 +593,23 @@ addEventListener('resize', fit);
 fit();
 
 /* ============ BONECOS ============ */
+const CANDIDATE_ART = 'openart-image_1792562542155_b14ffe26_1792562542262_7eaf6045.png';
+
+function candidateHead(portrait, mouth){
+  const older = portrait === 'older';
+  const outline = older
+    ? 'M53 440 Q100 390 167 382 Q235 375 293 410 Q343 438 344 514 L337 565 Q365 555 365 578 Q358 611 329 646 Q320 710 275 744 Q233 785 179 773 Q108 760 77 707 Q53 674 45 649 Q23 648 10 584 Q0 554 37 554 Q29 499 53 440 Z'
+    : 'M438 491 Q426 396 475 354 Q493 338 514 337 Q551 301 606 315 Q686 321 722 386 Q744 427 735 491 Q757 489 750 526 L735 570 Q732 593 711 592 Q697 661 661 672 L609 716 L592 735 L578 714 L520 675 Q468 647 458 594 Q437 598 431 578 L421 539 Q413 505 438 491 Z';
+  return `
+    <div class="head">
+      <svg viewBox="${older ? '0 375 380 430' : '415 305 345 430'}" aria-hidden="true">
+        <defs><mask id="portrait-${portrait}" maskUnits="userSpaceOnUse" x="0" y="0" width="768" height="1376"><path d="${outline}" fill="white" stroke="black" stroke-width="8"/></mask></defs>
+        <image href="${CANDIDATE_ART}" width="768" height="1376" mask="url(#portrait-${portrait})"/>
+      </svg>
+      <div class="mouth ${mouth || ''}"></div>
+    </div>`;
+}
+
 function fig(o){
   const vars = [
     `--s:${o.s}`, `--skin:${o.skin}`, `--hair:${o.hair || '#333'}`,
@@ -546,16 +618,16 @@ function fig(o){
     o.hat ? `--hat:${o.hat};--brim:${o.brim || o.hat}` : '',
   ].filter(Boolean).join(';');
   return `
-    <div class="fig" style="${vars}">
+    <div class="fig${o.portrait ? ' candidate ' + o.portrait : ''}" style="${vars}">
       <div class="arm l ${o.lc || ''}">${o.point === 'l' ? '<div class="fing"></div>' : ''}<div class="mitt"></div></div>
       <div class="arm r ${o.rc || ''}">${o.point === 'r' ? '<div class="fing"></div>' : ''}<div class="mitt"></div></div>
-      <div class="torso ${o.suit ? 'suit' : ''}">${o.tie ? '<div class="tie"></div>' : ''}</div>
-      <div class="head">
+      ${o.portrait ? `<div class="torso"><svg viewBox="${o.portrait === 'older' ? '0 770 380 420' : '380 695 388 420'}" preserveAspectRatio="none" aria-hidden="true"><image href="${CANDIDATE_ART}" width="768" height="1376"/></svg></div>` : `<div class="torso ${o.suit ? 'suit' : ''}">${o.tie ? '<div class="tie"></div>' : ''}</div>`}
+      ${o.portrait ? candidateHead(o.portrait, o.mouth) : `<div class="head">
         ${o.hat ? `<div class="hat ${o.pom ? 'pom' : ''}"></div>` : '<div class="hair"></div>'}
         ${o.brows ? '<div class="brow l"></div><div class="brow r"></div>' : ''}
         <div class="eye l"></div><div class="eye r"></div>
         <div class="mouth ${o.mouth || ''}"></div>
-      </div>
+      </div>`}
     </div>`;
 }
 
@@ -582,12 +654,12 @@ function chair(x, top, z){
 }
 
 puppet(400, 240, 3, 'cand', {
-  s:1.25, skin:'#ffd9a0', hair:'#5a3a1a', shirt:'#1f2a4d', suit:true, tie:'#d62828',
-  brows:true, px:9, point:'r', rc:'pt p1', mouth:'m1',
+  s:1.25, skin:'#e7c69a', shirt:'#30303e', suit:true, tie:'#176c3e', portrait:'older',
+  px:9, point:'r', rc:'pt p1', mouth:'m1',
 });
 puppet(1200, 240, 3, 'cand', {
-  s:1.25, skin:'#f1c27d', hair:'#e0b040', shirt:'#4b525e', suit:true, tie:'#1d5fd6',
-  brows:true, px:1, point:'l', lc:'pt p2', mouth:'m2',
+  s:1.25, skin:'#edcba0', shirt:'#3d5784', suit:true, portrait:'younger',
+  px:1, point:'l', lc:'pt p2', mouth:'m2',
 });
 
 const mod = document.createElement('div');
