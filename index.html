@@ -254,6 +254,8 @@
   }
   .crowd:nth-child(even) .mouth{ transform:rotate(8deg); }
   .crowd:nth-child(even) .mouth::after{ right:auto; left:2px; transform:rotate(12deg); }
+  .guest-art{ position:absolute; left:-8px; top:-30px; width:136px; height:180px; z-index:2; }
+  .guest .arm{ z-index:3; }
 
   .torso{
     position:absolute; left:22px; top:54px; width:76px; height:88px; z-index:1;
@@ -610,6 +612,17 @@ function candidateHead(portrait, mouth){
     </div>`;
 }
 
+function audiencePortrait(guest){
+  const red = guest === 'red';
+  const outline = red
+    ? 'M160 440 Q200 275 350 193 Q399 143 474 170 Q602 182 670 325 Q713 412 674 569 Q660 664 705 715 Q736 761 707 815 Q691 842 718 890 Q737 951 697 998 Q683 1023 707 1053 L677 1038 Q644 1117 694 1189 L645 1186 L608 1174 L630 1221 Q579 1209 546 1170 L506 1181 L496 1376 L145 1376 Q138 1280 108 1242 Q57 1162 65 1100 Q68 1070 98 1048 L100 1037 L140 1015 L220 919 Q221 862 182 819 Q143 791 163 734 Q190 691 181 672 Q128 567 160 440 Z'
+    : 'M215 350 Q246 192 331 132 Q427 44 524 85 Q641 66 691 207 Q735 325 719 466 L712 820 Q751 850 756 934 L764 1376 L104 1376 L108 1211 Q78 1299 35 1296 Q0 1290 0 1243 L0 633 L40 470 Q49 450 59 469 L59 380 Q57 348 90 348 L207 348 Z';
+  return `<svg class="guest-art" viewBox="0 50 768 1120" role="img" aria-label="${red ? 'Convidada de vermelho' : 'Convidada de verde com celular'}">
+    <defs><mask id="guest-${guest}" maskUnits="userSpaceOnUse" x="0" y="0" width="768" height="1376"><path d="${outline}" fill="white" stroke="black" stroke-width="6"/></mask></defs>
+    <image href="audience-${guest}.jpg" width="768" height="1376" mask="url(#guest-${guest})"/>
+  </svg>`;
+}
+
 function fig(o){
   const vars = [
     `--s:${o.s}`, `--skin:${o.skin}`, `--hair:${o.hair || '#333'}`,
@@ -618,11 +631,11 @@ function fig(o){
     o.hat ? `--hat:${o.hat};--brim:${o.brim || o.hat}` : '',
   ].filter(Boolean).join(';');
   return `
-    <div class="fig${o.portrait ? ' candidate ' + o.portrait : ''}" style="${vars}">
+    <div class="fig${o.portrait ? ' candidate ' + o.portrait : ''}${o.guest ? ' guest' : ''}" style="${vars}">
       <div class="arm l ${o.lc || ''}">${o.point === 'l' ? '<div class="fing"></div>' : ''}<div class="mitt"></div></div>
       <div class="arm r ${o.rc || ''}">${o.point === 'r' ? '<div class="fing"></div>' : ''}<div class="mitt"></div></div>
-      ${o.portrait ? `<div class="torso"><svg viewBox="${o.portrait === 'older' ? '0 770 380 420' : '380 695 388 420'}" preserveAspectRatio="none" aria-hidden="true"><image href="${CANDIDATE_ART}" width="768" height="1376"/></svg></div>` : `<div class="torso ${o.suit ? 'suit' : ''}">${o.tie ? '<div class="tie"></div>' : ''}</div>`}
-      ${o.portrait ? candidateHead(o.portrait, o.mouth) : `<div class="head">
+      ${o.guest ? audiencePortrait(o.guest) : o.portrait ? `<div class="torso"><svg viewBox="${o.portrait === 'older' ? '0 770 380 420' : '380 695 388 420'}" preserveAspectRatio="none" aria-hidden="true"><image href="${CANDIDATE_ART}" width="768" height="1376"/></svg></div>` : `<div class="torso ${o.suit ? 'suit' : ''}">${o.tie ? '<div class="tie"></div>' : ''}</div>`}
+      ${o.guest ? '' : o.portrait ? candidateHead(o.portrait, o.mouth) : `<div class="head">
         ${o.hat ? `<div class="hat ${o.pom ? 'pom' : ''}"></div>` : '<div class="hair"></div>'}
         ${o.brows ? '<div class="brow l"></div><div class="brow r"></div>' : ''}
         <div class="eye l"></div><div class="eye r"></div>
@@ -678,9 +691,9 @@ const people = [
   { skin:'#8d5524', shirt:'#7f8c8d', hat:'#1d5fd6', brim:'#fff', pom:true },
   { skin:'#f1c27d', hair:'#5a3a1a', shirt:'#27ae60' },
   { skin:'#e0ac69', hair:'#111',    shirt:'#c0392b' },
-  { skin:'#ffd9a0', shirt:'#8e44ad', hat:'#f39c12', brim:'#2e7d32', pom:true },
+  { skin:'#edd0aa', shirt:'#af1236', guest:'red' },
   { skin:'#c68642', hair:'#2a1a0a', shirt:'#2980b9' },
-  { skin:'#f5cba7', hair:'#b03a2e', shirt:'#f1c40f' },
+  { skin:'#edd0aa', shirt:'#193d35', guest:'green' },
   { skin:'#8d5524', hair:'#1f1f1f', shirt:'#e74c3c' },
   { skin:'#ffd9a0', hair:'#7a4a2a', shirt:'#1abc9c' },
 ];
