@@ -840,6 +840,24 @@ document.getElementById('startBtn').addEventListener('click', () => {
 
 song.addEventListener('seeked', () => clock && syncAnims(true));
 
+let easterEggKeys = '';
+document.addEventListener('keydown', event => {
+  if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing ||
+      event.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')){
+    easterEggKeys = '';
+    return;
+  }
+  if (event.repeat) return;
+  if (event.key.length !== 1){ easterEggKeys = ''; return; }
+  easterEggKeys = (easterEggKeys + event.key.toLowerCase()).slice(-8);
+  const profile = easterEggKeys.endsWith('ale') ? 'p.a.i.m'
+    : easterEggKeys.endsWith('laurinha') ? 'laura.antunesf' : null;
+  if (profile){
+    easterEggKeys = '';
+    window.open(`https://www.instagram.com/${profile}/`, '_blank', 'noopener,noreferrer');
+  }
+});
+
 let muted = false;
 document.getElementById('mute').addEventListener('click', function(){
   muted = !muted;
